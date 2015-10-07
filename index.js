@@ -17,6 +17,7 @@ function executeFMPP(args, callback) {
  */
 function buildOptionArgs(options, parameterlessOptions) {
     var commandLineOptionMap = {
+        dataRoot: '-data-root',
         dateFormat: '--date-format',
         dateTimeFormat: '--datetime-format',
         locale: '-A',
