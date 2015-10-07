@@ -28,8 +28,24 @@ function writeTmpFileSync(data) {
  *
  * @param {Object} settings
  */
-function Freemarker(settings) {
-  var fmpOpts = settings.options || {};
+function freemarker(settings) {
+  //var fmpOpts = settings.options || {};
+    var args = [];
+
+    if (settings.tplPath) {
+        args.push(settings.tplPath);
+    }
+    if (settings.cfgPath) {
+        args.push('-C', settings.cfgPath);
+    }
+    if (settings.data) {
+        args.push('-D', convertDataModel(settings.data));
+    }
+    fmpp.run(args, function getFMPPResult(err, respData) {
+        if (err) {
+            return done(err, null, respData);
+        }
+    });
 
   //if(!settings.viewRoot) {
   //  throw new Error('Freemarker: Need viewRoot param.')
@@ -93,19 +109,16 @@ Freemarker.prototype.render = function(cfgFile, tplPath, data, done) {
     //var args = [tplFile, '-C', cfgFile];
     var args = [tplPath, '-C', cfgFile];
     if (data) {
-        args+= ['-D', dataTdd];
+        args.push('-D', dataTdd);
     }
-    fmpp.run(args, function getFMPPResult(err, respData) {
-      if(err) {
-        return done(err,null,respData);
-      }
+
 
       //fs.readFile(tmpFile, function(err, result) {
       //  done(err, '' + result, respData);
       //  fs.unlink(tmpFile, nop);
       //  fs.unlink(cfgFile, nop);
       //});
-    });
+    //});
 
   //});
 
@@ -169,4 +182,4 @@ Freemarker.getFMPPVersion = function getFMPPVersion(cb) {
   fmpp.run(['--version'], cb);
 };
 
-module.exports = Freemarker;
+module.exports = freemarker;
