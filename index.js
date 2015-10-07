@@ -32,12 +32,12 @@ function buildOptionArgs(options, parameterlessOptions) {
     for (var option in options) {
         var param = commandLineOptionMap[option];
         if (!param) {
-            throw new Error(param + " is not a valid option")
+            throw new Error(option + " is not a valid option")
         }
-        var commandLineOption = option;
+        var commandLineOption = options[option];
         var converterFunc = converterFunctionMap[option];
         if (converterFunc) {
-            commandLineOption = converterFunc(option);
+            commandLineOption = converterFunc(options[option]);
         }
         args.push(param, commandLineOption);
     }
@@ -87,8 +87,8 @@ function convertDataModel(data) {
  * @param parameterlessOptions
  */
 function renderSingleFile(tplPath, callback, options, parameterlessOptions) {
-    var args = [tplPath];
-    args.push(buildOptionArgs(options, parameterlessOptions));
+    var args = buildOptionArgs(options, parameterlessOptions);
+    args.unshift(tplPath);
     executeFmpp(args, callback);
 }
 
