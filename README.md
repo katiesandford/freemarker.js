@@ -1,8 +1,6 @@
 Freemarker.js http://freemarker.js.org
 ==============
 
-[![Join the chat at https://gitter.im/ijse/freemarker.js](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ijse/freemarker.js?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 > FreeMarker is a "template engine". It's a Java package, a class library for Java programmers.
 > ![](http://freemarker.org/images/overview.png)
 
@@ -25,18 +23,14 @@ npm install freemarker.js
 # How to use
 
 ```javascript
-var Freemarker = require('freemarker.js');
-var fm = new Freemarker({
-  viewRoot: '/template',
-  options: {
-    /** for fmpp */
-  }
-});
+var freemarker = require('freemarker.js');
 
 // Single template file
-fm.render(tpl, dataObject, function(err, html, output) {
-  //...
-});
+// require template path and options
+freemarker.renderSingleFile(tplPath, callback, options, parameterlessOptions);
+
+// Bulk file
+//freemarker.renderBulk(options, paramterlessOptions, callback)
 
 // Sync render
 var result = fm.renderSync(tpl, dataObject);

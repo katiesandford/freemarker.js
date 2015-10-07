@@ -5,7 +5,7 @@ var fmpp = require('./lib/fmpp.js');
  * @param {string[]} args
  * @param {Function} callback
  */
-function executeFmpp(args, callback) {
+function executeFMPP(args, callback) {
     fmpp.run(args, function getFMPPResult(err, respData) {
          return callback(err, null, respData);
     });
@@ -17,11 +17,14 @@ function executeFmpp(args, callback) {
  */
 function buildOptionArgs(options, parameterlessOptions) {
     var commandLineOptionMap = {
+        dateFormat: '--date-format',
+        dateTimeFormat: '--datetime-format',
         locale: '-A',
         configPath: '-C',
         data: '-D',
         outputFile: '-o',
-        outputDir: '-O'
+        outputDir: '-O',
+        outputEncoding: '--output-encoding'
     };
 
     var converterFunctionMap = {
@@ -54,7 +57,7 @@ function buildOptionArgs(options, parameterlessOptions) {
  * @param  {Object}   data resource data
  * @return {String} result
  */
-function generateConfiguration(data, done) {
+function generateConfiguration(data) {
   var sName = Object.keys(data || {});
   var result = [];
   sName.forEach(function(x) {
@@ -80,34 +83,38 @@ function convertDataModel(data) {
 }
 
 /**
+ * Renders a single ftl file
  *
- * @param tplPath
+ * @param {String} [tplPath]
  * @param callback
- * @param options
- * @param parameterlessOptions
+ * @param {Object} [options] - {}
+ * @param {String[]} [parameterlessOptions] - []
  */
 function renderSingleFile(tplPath, callback, options, parameterlessOptions) {
     var args = buildOptionArgs(options, parameterlessOptions);
     args.unshift(tplPath);
-    executeFmpp(args, callback);
+    executeFMPP(args, callback);
 }
 
 /**
- *
+ * Runs any fmpp command
  * @param callback
- * @param options
- * @param parameterlessOptions
+ * @param {Object} [options] - {}
+ * @param {String[]} [parameterlessOptions] - []
  */
-function runFmpp(callback, options, parameterlessOptions) {
-    executeFmpp(buildOptionArgs(options, parameterlessOptions), callback);
+function runFMPP(callback, options, parameterlessOptions) {
+    executeFMPP(buildOptionArgs(options, parameterlessOptions), callback);
 }
 
+/**
+ * @param callback
+ */
 function getFMPPVersion(callback) {
-    executeFmpp(['--version'], callback);
+    executeFMPP(['--version'], callback);
 }
 
 module.exports = {
     renderSingleFile: renderSingleFile,
-    runFmpp: runFmpp,
+    runFMPP: runFMPP,
     getFMPPVersion: getFMPPVersion
 };
