@@ -1,68 +1,50 @@
-
-var path = require('path');
-var fs = require('fs');
-var uuid = require('node-uuid');
-var os = require('os');
-
 var fmpp = require('./lib/fmpp.js');
 
-function nop() {}
-function getTmpFileName() {
-  return path.join(os.tmpDir(), uuid.v4()).replace(/\\/g, '/');
-}
-
-function writeTmpFile(data, done) {
-  var fileName = getTmpFileName();
-  fs.writeFile(fileName, data, function(err) {
-    done(err, fileName);
-  });
-}
-function writeTmpFileSync(data) {
-  var fileName = getTmpFileName();
-  fs.writeFileSync(fileName, data);
-  return fileName;
+/**
+ *
+ * @param {string[]} args
+ * @param {Function} callback
+ */
+function executeFmpp(args, callback) {
+    fmpp.run(args, function getFMPPResult(err, respData) {
+         return callback(err, null, respData);
+    });
 }
 
 /**
- * Freemarker Class
- *
- * @param {Object} settings
+ * @param {Object} options
+ * @param {string[]} parameterlessOptions
  */
-function freemarker(settings) {
-  //var fmpOpts = settings.options || {};
+function buildOptionArgs(options, parameterlessOptions) {
+    var commandLineOptionMap = {
+        locale: '-A',
+        configPath: '-C',
+        data: '-D',
+        outputFile: '-o',
+        outputDir: '-O'
+    };
+
+    var converterFunctionMap = {
+        data: convertDataModel
+    };
+
     var args = [];
-
-    if (settings.tplPath) {
-        args.push(settings.tplPath);
-    }
-    if (settings.cfgPath) {
-        args.push('-C', settings.cfgPath);
-    }
-    if (settings.data) {
-        args.push('-D', convertDataModel(settings.data));
-    }
-    fmpp.run(args, function getFMPPResult(err, respData) {
-        if (err) {
-            return done(err, null, respData);
+    for (var option in options) {
+        var param = commandLineOptionMap[option];
+        if (!param) {
+            throw new Error(param + " is not a valid option")
         }
-    });
-
-  //if(!settings.viewRoot) {
-  //  throw new Error('Freemarker: Need viewRoot param.')
-  //}
-  //if(!fmpOpts.sourceRoot) {
-  //  fmpOpts.sourceRoot = settings.viewRoot;
-  //}
-  //if(!fmpOpts.outputRoot) {
-  //  fmpOpts.outputRoot = os.tmpDir();
-  //}
-  //
-  //// Convert folder seperate in case of Windows
-  //fmpOpts.sourceRoot = fmpOpts.sourceRoot.replace(/\\/g, '/');
-  //fmpOpts.outputRoot = fmpOpts.outputRoot.replace(/\\/g, '/');
-  //
-  //this.viewRoot = settings.viewRoot;
-  //this.options = fmpOpts;
+        var commandLineOption = option;
+        var converterFunc = converterFunctionMap[option];
+        if (converterFunc) {
+            commandLineOption = converterFunc(option);
+        }
+        args.push(param, commandLineOption);
+    }
+    if (parameterlessOptions) {
+        args.push(parameterlessOptions)
+    }
+    return args;
 }
 
 /**
@@ -88,98 +70,44 @@ function generateConfiguration(data, done) {
   return result.join('\n');
 }
 
-
-Freemarker.prototype.render = function(cfgFile, tplPath, data, done) {
-  var dataTdd = convertDataModel(data);
-  //var tplFile = path.join(this.viewRoot, tpl).replace(/\\/g, '/');
-
-  // Make configuration file for fmpp
-  //var cfgDataObject = this.options;
-  //cfgDataObject.data = dataTdd;
-
-  // Set output file
-  //var tmpFile = getTmpFileName();
-  //cfgDataObject.outputFile = tmpFile;
-
-  //var cfgContent = generateConfiguration(cfgDataObject);
-  //writeTmpFile(cfgContent, function getCfgFileName(err, cfgFile) {
-    //if(err) {
-    //  return done(err);
-    //}
-    //var args = [tplFile, '-C', cfgFile];
-    var args = [tplPath, '-C', cfgFile];
-    if (data) {
-        args.push('-D', dataTdd);
-    }
-
-
-      //fs.readFile(tmpFile, function(err, result) {
-      //  done(err, '' + result, respData);
-      //  fs.unlink(tmpFile, nop);
-      //  fs.unlink(cfgFile, nop);
-      //});
-    //});
-
-  //});
-
- // return ;
-};
-
-Freemarker.prototype.renderSync = function(tpl, data) {
-  var dataTdd = convertDataModel(data);
-  var tplFile = path.join(this.viewRoot, tpl).replace(/\\/g, '/');
-
-  // Make configuration file for fmpp
-  var cfgDataObject = this.options;
-  cfgDataObject.data = dataTdd;
-
-  // Set output file
-  var tmpFile = getTmpFileName();
-  cfgDataObject.outputFile = tmpFile;
-
-  var cfgContent = generateConfiguration(cfgDataObject);
-
-  var output = null;
-  var result = '';
-  try {
-    var cfgFile = writeTmpFileSync(cfgContent);
-    var args = [tplFile, '-C', cfgFile];
-    output = fmpp.runSync(args);
-
-    // Wait for tmpFile created
-    while(!fs.existsSync(tmpFile)){}
-    result = fs.readFileSync(tmpFile);
-  } catch(e) {
-    output = e;
-  }
-
-  return ''+result || output;
-};
-
-/**
- * Render views in bulk mode
- * @param  {String}   cfgFile configuration file
- * @param  {Function} done    callback
- */
-Freemarker.prototype.renderBulk = function(cfgFile, done) {
-  fmpp.run(['-C', cfgFile], done);
-};
-
-Freemarker.exec = fmpp.run;
-
 /**
  * Convert data object to TDD
- * @param  {Ojbect} data
+ * @param  {Object} data
  * @return {String}      [description]
  */
 function convertDataModel(data) {
   return JSON.stringify(data, true, ' ');
 }
 
+/**
+ *
+ * @param tplPath
+ * @param callback
+ * @param options
+ * @param parameterlessOptions
+ */
+function renderSingleFile(tplPath, callback, options, parameterlessOptions) {
+    var args = [tplPath];
+    args.push(buildOptionArgs(options, parameterlessOptions));
+    executeFmpp(args, callback);
+}
 
-Freemarker.version = require('./package.json').version;
-Freemarker.getFMPPVersion = function getFMPPVersion(cb) {
-  fmpp.run(['--version'], cb);
+/**
+ *
+ * @param callback
+ * @param options
+ * @param parameterlessOptions
+ */
+function runFmpp(callback, options, parameterlessOptions) {
+    executeFmpp(buildOptionArgs(options, parameterlessOptions), callback);
+}
+
+function getFMPPVersion(callback) {
+    executeFmpp(['--version'], callback);
+}
+
+module.exports = {
+    renderSingleFile: renderSingleFile,
+    runFmpp: runFmpp,
+    getFMPPVersion: getFMPPVersion
 };
-
-module.exports = freemarker;
