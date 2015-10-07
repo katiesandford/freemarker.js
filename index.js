@@ -7,7 +7,7 @@ var fmpp = require('./lib/fmpp.js');
  */
 function executeFMPP(args, callback) {
     fmpp.run(args, function getFMPPResult(err, respData) {
-         return callback(err, null, respData);
+         return callback(err, respData);
     });
 }
 
