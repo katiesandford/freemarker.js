@@ -31,22 +31,22 @@ function writeTmpFileSync(data) {
 function Freemarker(settings) {
   var fmpOpts = settings.options || {};
 
-  if(!settings.viewRoot) {
-    throw new Error('Freemarker: Need viewRoot param.')
-  }
-  if(!fmpOpts.sourceRoot) {
-    fmpOpts.sourceRoot = settings.viewRoot;
-  }
-  if(!fmpOpts.outputRoot) {
-    fmpOpts.outputRoot = os.tmpDir();
-  }
-
-  // Convert folder seperate in case of Windows
-  fmpOpts.sourceRoot = fmpOpts.sourceRoot.replace(/\\/g, '/');
-  fmpOpts.outputRoot = fmpOpts.outputRoot.replace(/\\/g, '/');
-
-  this.viewRoot = settings.viewRoot;
-  this.options = fmpOpts;
+  //if(!settings.viewRoot) {
+  //  throw new Error('Freemarker: Need viewRoot param.')
+  //}
+  //if(!fmpOpts.sourceRoot) {
+  //  fmpOpts.sourceRoot = settings.viewRoot;
+  //}
+  //if(!fmpOpts.outputRoot) {
+  //  fmpOpts.outputRoot = os.tmpDir();
+  //}
+  //
+  //// Convert folder seperate in case of Windows
+  //fmpOpts.sourceRoot = fmpOpts.sourceRoot.replace(/\\/g, '/');
+  //fmpOpts.outputRoot = fmpOpts.outputRoot.replace(/\\/g, '/');
+  //
+  //this.viewRoot = settings.viewRoot;
+  //this.options = fmpOpts;
 }
 
 /**
@@ -73,39 +73,43 @@ function generateConfiguration(data, done) {
 }
 
 
-Freemarker.prototype.render = function(tpl, data, done) {
+Freemarker.prototype.render = function(cfgFile, tplPath, data, done) {
   var dataTdd = convertDataModel(data);
-  var tplFile = path.join(this.viewRoot, tpl).replace(/\\/g, '/');
+  //var tplFile = path.join(this.viewRoot, tpl).replace(/\\/g, '/');
 
   // Make configuration file for fmpp
-  var cfgDataObject = this.options;
-  cfgDataObject.data = dataTdd;
+  //var cfgDataObject = this.options;
+  //cfgDataObject.data = dataTdd;
 
   // Set output file
-  var tmpFile = getTmpFileName();
-  cfgDataObject.outputFile = tmpFile;
+  //var tmpFile = getTmpFileName();
+  //cfgDataObject.outputFile = tmpFile;
 
-  var cfgContent = generateConfiguration(cfgDataObject);
-  writeTmpFile(cfgContent, function getCfgFileName(err, cfgFile) {
-    if(err) {
-      return done(err);
+  //var cfgContent = generateConfiguration(cfgDataObject);
+  //writeTmpFile(cfgContent, function getCfgFileName(err, cfgFile) {
+    //if(err) {
+    //  return done(err);
+    //}
+    //var args = [tplFile, '-C', cfgFile];
+    var args = [tplPath, '-C', cfgFile];
+    if (data) {
+        args+= ['-D', dataTdd];
     }
-    var args = [tplFile, '-C', cfgFile];
     fmpp.run(args, function getFMPPResult(err, respData) {
       if(err) {
         return done(err,null,respData);
       }
 
-      fs.readFile(tmpFile, function(err, result) {
-        done(err, '' + result, respData);
-        fs.unlink(tmpFile, nop);
-        fs.unlink(cfgFile, nop);
-      });
+      //fs.readFile(tmpFile, function(err, result) {
+      //  done(err, '' + result, respData);
+      //  fs.unlink(tmpFile, nop);
+      //  fs.unlink(cfgFile, nop);
+      //});
     });
 
-  });
+  //});
 
-  return ;
+ // return ;
 };
 
 Freemarker.prototype.renderSync = function(tpl, data) {
