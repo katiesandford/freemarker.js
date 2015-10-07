@@ -17,7 +17,7 @@ function executeFMPP(args, callback) {
  */
 function buildOptionArgs(options, parameterlessOptions) {
     var commandLineOptionMap = {
-        dataRoot: '-data-root',
+        dataRoot: '--data-root',
         dateFormat: '--date-format',
         dateTimeFormat: '--datetime-format',
         locale: '-A',
@@ -80,7 +80,7 @@ function generateConfiguration(data) {
  * @return {String}      [description]
  */
 function convertDataModel(data) {
-  return JSON.stringify(data, true, ' ');
+  return '"' + JSON.stringify(data, true, ' ').replace(/\"/g, "").replace(/(\r\n|\n|\r)/gm,"") + '"';
 }
 
 /**
